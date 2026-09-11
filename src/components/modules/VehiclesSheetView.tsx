@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { formatCurrency, formatDate, VEHICLE_STATUSES } from "@/lib/types";
 import { exportToExcel } from "@/lib/excel";
+import { VehicleExpensesSheetView } from "@/components/modules/VehicleExpensesSheetView";
 
 interface Customer {
   id: string;
@@ -192,6 +193,7 @@ export function VehiclesSheetView() {
   const [editing, setEditing] = useState<{ row: number; col: number } | null>(null);
   const [draft, setDraft] = useState("");
   const [savingAll, setSavingAll] = useState(false);
+  const [activeTab, setActiveTab] = useState<"vehicles" | "expenses">("vehicles");
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement | null>(null);
   const gridRef = useRef<HTMLDivElement | null>(null);
   const rowsRef = useRef<SheetRow[]>([]);
@@ -616,6 +618,13 @@ export function VehiclesSheetView() {
         }
       />
 
+      <div className="flex w-fit items-center gap-1 rounded-lg border border-[#D0D0D0] bg-[#F3F3F3] p-1">
+        <button type="button" onClick={() => setActiveTab("vehicles")} className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${activeTab === "vehicles" ? "bg-white text-[#217346] shadow-sm" : "text-[#6B7280] hover:text-[#111827]"}`}>Vehicle Data</button>
+        <button type="button" onClick={() => setActiveTab("expenses")} className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${activeTab === "expenses" ? "bg-white text-[#217346] shadow-sm" : "text-[#6B7280] hover:text-[#111827]"}`}>Vehicle Expenses</button>
+      </div>
+
+      {activeTab === "expenses" && <VehicleExpensesSheetView />}
+      <div className={activeTab === "expenses" ? "hidden" : "contents"}>
       {(customers.length === 0 || companyLedgers.length === 0) && !loading && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
           {customers.length === 0 && "Add at least one customer before saving vehicles. "}
@@ -841,6 +850,7 @@ export function VehiclesSheetView() {
             </table>
           </div>
         )}
+      </div>
       </div>
     </div>
   );
