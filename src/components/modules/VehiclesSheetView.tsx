@@ -296,8 +296,19 @@ export function VehiclesSheetView() {
     const row = rowsRef.current.find((item) => item.localId === localId);
     if (!row) return;
     const data = nextData || row.data;
-    if (!data.vin || !data.make || !data.model || !data.customerId || !data.companyLedgerId) {
-      if (!row.isNew) toast.error("VIN, Make, Model, Customer, and Company are required");
+    const requiredForNewRow = [
+      data.vin,
+      data.make,
+      data.model,
+      data.customerId,
+      data.companyLedgerId,
+    ].every((value) => String(value ?? "").trim().length > 0);
+
+    // Existing vehicles are already persisted records. A cell edit should not
+    // block on a required-field check for unrelated values, especially when a
+    // legacy record has an optional company assignment.
+    if (row.isNew && !requiredForNewRow) {
+      toast.error("VIN, Make, Model, Customer, and Company are required");
       return;
     }
     setRows((current) =>
