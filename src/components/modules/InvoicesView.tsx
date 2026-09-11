@@ -129,6 +129,24 @@ export function InvoicesView() {
     setDetailData(d);
   };
 
+  const deleteInvoice = async (invoice: Invoice) => {
+    if (!confirm(`Delete ${invoice.invoiceNumber}? This cannot be undone.`)) return;
+
+    try {
+      const res = await fetch(`/api/invoices/${invoice.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const error = await res.json().catch(() => null);
+        throw new Error(error?.error || "Failed to delete invoice");
+      }
+      setDetailInvoice(null);
+      setDetailData(null);
+      toast.success("Invoice deleted");
+      await load();
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to delete invoice");
+    }
+  };
+
   const filtered = invoices.filter((i) => {
     const s = search.toLowerCase();
     const matchSearch =
@@ -352,14 +370,7 @@ export function InvoicesView() {
                           size="sm"
                           variant="ghost"
                           className="h-7 w-7 p-0 text-[#DC2626]"
-                          onClick={async () => {
-                            if (!confirm(`Delete ${i.invoiceNumber}?`)) return;
-                            await fetch(`/api/invoices/${i.id}`, {
-                              method: "DELETE",
-                            });
-                            toast.success("Invoice deleted");
-                            load();
-                          }}
+          onClick={() => deleteInvoice(i)}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
@@ -517,21 +528,31 @@ export function InvoicesView() {
                 </div>
               </div>
 
-              <Button
-                className="w-full gap-1.5"
-                onClick={() =>
-                  generateInvoicePdf({
-                    invoice: detailData,
-                    customer: detailData.customer,
-                    vehicle: detailData.vehicle,
-                    items: detailData.items,
-                    expenses: detailData.expenses,
-                  })
-                }
-              >
-                <FileText className="h-4 w-4" />
-                Generate Invoice PDF
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  className="w-full gap-1.5"
+                  onClick={() =>
+                    generateInvoicePdf({
+                      invoice: detailData,
+                      customer: detailData.customer,
+                      vehicle: detailData.vehicle,
+                      items: detailData.items,
+                      expenses: detailData.expenses,
+                    })
+                  }
+                >
+                  <FileText className="h-4 w-4" />
+                  Generate Invoice PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full gap-1.5 border-[#FECACA] text-[#DC2626] hover:bg-[#FEF2F2] hover:text-[#B91C1C]"
+                  onClick={() => detailInvoice && deleteInvoice(detailInvoice)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete Invoice
+                </Button>
+              </div>
             </div>
           )}
         </SheetContent>
