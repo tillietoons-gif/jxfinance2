@@ -6,18 +6,22 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const customerId = searchParams.get("customerId");
     const status = searchParams.get("status");
-    const vehicles = await db.vehicle.findMany({
-      where: {
-        ...(customerId ? { customerId } : {}),
-        ...(status ? { status } : {}),
-      },
-      orderBy: { createdAt: "desc" },
-      include: {
-        customer: true,
-        expenses: true,
-        _count: { select: { payments: true, invoices: true } },
-      },
-    });
+    const [vehicles, companyLedgers] = await Promise.all([
+      db.vehicle.findMany({
+        where: {
+          ...(customerId ? { customerId } : {}),
+          ...(status ? { status } : {}),
+        },
+        orderBy: { createdAt: "desc" },
+        include: {
+          customer: true,
+          expenses: true,
+          _count: { select: { payments: true, invoices: true } },
+        },
+      }),
+      db.ledger.findMany({ where: { type: "COMPANY" } }),
+    ]);
+    const ledgerById = new Map(companyLedgers.map((ledger) => [ledger.id, ledger]));
     const enriched = vehicles.map((v) => {
       const totalCharge = v.expenses.reduce(
         (s, e) => s + (e.customerCharge || 0),
@@ -28,7 +32,15 @@ export async function GET(req: NextRequest) {
         0
       );
       const profit = totalCharge - totalCost;
-      return { ...v, totalCharge, totalCost, profit };
+      return {
+        ...v,
+        totalCharge,
+        totalCost,
+        profit,
+        companyLedger: v.companyLedgerId
+          ? ledgerById.get(v.companyLedgerId) || null
+          : null,
+      };
     });
     return NextResponse.json(enriched);
   } catch (e) {

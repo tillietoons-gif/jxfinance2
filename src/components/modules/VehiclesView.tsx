@@ -79,6 +79,8 @@ interface Vehicle {
   notes?: string;
   customer?: { id: string; name: string };
   customerId: string;
+  companyLedgerId?: string | null;
+  companyLedger?: { id: string; name: string } | null;
   expenses: any[];
   totalCharge: number;
   totalCost: number;
@@ -163,7 +165,8 @@ export function VehiclesView() {
       v.vin.toLowerCase().includes(s) ||
       `${v.make} ${v.model}`.toLowerCase().includes(s) ||
       v.destination.toLowerCase().includes(s) ||
-      v.customer?.name.toLowerCase().includes(s);
+      v.customer?.name.toLowerCase().includes(s) ||
+      (v.companyLedger?.name || "").toLowerCase().includes(s);
     const matchStatus = statusFilter === "all" || v.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -184,6 +187,7 @@ export function VehiclesView() {
         { header: "Model", key: "model", width: 18 },
         { header: "Year", key: "year", width: 8 },
         { header: "Customer", key: "customerName", width: 22 },
+        { header: "Company", key: "companyName", width: 22 },
         { header: "Destination", key: "destination", width: 20 },
         { header: "Status", key: "status", width: 14 },
         { header: "Customer Charge", key: "totalCharge", width: 16 },
@@ -194,6 +198,7 @@ export function VehiclesView() {
       rows: filtered.map((v) => ({
         ...v,
         customerName: v.customer?.name || "",
+        companyName: v.companyLedger?.name || "",
         createdAt: formatDate(v.createdAt),
       })),
       totals: [
@@ -272,7 +277,7 @@ export function VehiclesView() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
           <Input
-            placeholder="Search VIN, make, model, customer…"
+            placeholder="Search VIN, make, model, customer, company…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -326,12 +331,13 @@ export function VehiclesView() {
                   <TableHead className="w-[60px]"></TableHead>
                   <TableHead>VIN / Vehicle</TableHead>
                   <TableHead>Customer</TableHead>
+                  <TableHead>Company</TableHead>
                   <TableHead>Destination</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Charge</TableHead>
                   <TableHead className="text-right">Cost</TableHead>
                   <TableHead className="text-right">Profit</TableHead>
-                  <TableHead className="w-[80px]"></TableHead>
+                  <TableHead className="w-[110px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -359,6 +365,9 @@ export function VehiclesView() {
                       {v.customer?.name || "—"}
                     </TableCell>
                     <TableCell className="text-sm text-[#4B5563]">
+                      {v.companyLedger?.name || "—"}
+                    </TableCell>
+                    <TableCell className="text-sm text-[#4B5563]">
                       {v.destination || "—"}
                     </TableCell>
                     <TableCell>
@@ -374,7 +383,35 @@ export function VehiclesView() {
                       {formatCurrency(v.profit)}
                     </TableCell>
                     <TableCell>
-                      <ChevronRight className="h-4 w-4 text-[#9CA3AF]" />
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditing(v);
+                            setDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0 text-[#DC2626]"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (!confirm(`Delete vehicle ${v.vin}? Related expenses will also be removed.`)) return;
+                            await fetch(`/api/vehicles/${v.id}`, { method: "DELETE" });
+                            toast.success("Vehicle deleted");
+                            load();
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <ChevronRight className="h-4 w-4 text-[#9CA3AF]" />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -416,6 +453,8 @@ export function VehiclesView() {
             </SheetTitle>
             <p className="text-xs text-[#6B7280] font-mono">
               {detailVehicle?.vin}
+              {detailData?.customer?.name ? ` • ${detailData.customer.name}` : ""}
+              {detailData?.companyLedger?.name ? ` • ${detailData.companyLedger.name}` : ""}
             </p>
           </SheetHeader>
 
@@ -616,7 +655,7 @@ function VehicleFormDialog({
         companyLedgerId: companyLedgers[0]?.id || "",
       });
     }
-  }, [editing, customers, open]);
+  }, [editing, customers, companyLedgers, open]);
 
   const decodeVin = async () => {
     const vin = form.vin.trim().toUpperCase();

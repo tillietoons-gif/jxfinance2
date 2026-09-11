@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
+  experimental: {
+    allowedHosts: [".monkeycode-ai.live"],
+  },
 };
 
 export default nextConfig;

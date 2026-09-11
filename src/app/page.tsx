@@ -6,6 +6,7 @@ import { Button, Text, Title1, makeStyles, mergeClasses, tokens } from '@fluentu
 import { Navigation24Regular, Settings24Regular, Board24Regular, VehicleBus24Regular, People24Regular, BookOpen24Regular, Payment24Regular, DocumentBulletList24Regular, DataBarVertical24Regular, Dismiss24Regular } from '@fluentui/react-icons';
 import { DashboardView } from '@/components/modules/DashboardView';
 import { VehiclesView } from '@/components/modules/VehiclesView';
+import { VehiclesSheetView } from '@/components/modules/VehiclesSheetView';
 import { CustomersView } from '@/components/modules/CustomersView';
 import { LedgersView } from '@/components/modules/LedgersView';
 import { PaymentsView } from '@/components/modules/PaymentsView';
@@ -13,10 +14,10 @@ import { InvoicesView } from '@/components/modules/InvoicesView';
 import { ReportsView } from '@/components/modules/ReportsView';
 import { SettingsView } from '@/components/modules/SettingsView';
 
-type View = 'dashboard' | 'vehicles' | 'customers' | 'ledgers' | 'payments' | 'invoices' | 'reports' | 'settings';
+type View = 'dashboard' | 'vehicles' | 'vehicle-sheet' | 'customers' | 'ledgers' | 'payments' | 'invoices' | 'reports' | 'settings';
 const NAV_GROUPS = [
   { label: 'Overview', items: [['dashboard', 'Dashboard', Board24Regular, 'Overview and KPIs']] },
-  { label: 'Operations', items: [['vehicles', 'Vehicles', VehicleBus24Regular, 'Shipment tracking'], ['customers', 'Customers', People24Regular, 'Client directory']] },
+  { label: 'Operations', items: [['vehicles', 'Vehicles', VehicleBus24Regular, 'Shipment tracking'], ['vehicle-sheet', 'Vehicle Sheet', VehicleBus24Regular, 'Excel-style vehicle grid'], ['customers', 'Customers', People24Regular, 'Client directory']] },
   { label: 'Finance', items: [['invoices', 'Invoices', DocumentBulletList24Regular, 'Billing and invoicing'], ['payments', 'Payments', Payment24Regular, 'Payment recording'], ['ledgers', 'Ledgers', BookOpen24Regular, 'Dual-ledger accounting']] },
   { label: 'Insights', items: [['reports', 'Reports', DataBarVertical24Regular, 'Analytics and exports']] },
   { label: 'System', items: [['settings', 'Settings', Settings24Regular, 'Company defaults']] },
@@ -73,7 +74,7 @@ export default function Home() {
     <div style={{ flex: 1, minWidth: 0 }}>
       <header className={styles.mobileBar}><Button appearance="subtle" icon={<Navigation24Regular />} aria-label="Open navigation" onClick={() => setMobileOpen(true)} /><Title1 style={{ fontSize: tokens.fontSizeBase400 }}>JACXI</Title1><div style={{ width: 32 }} /></header>
       <main className={styles.main}><div key={`${view}-${refreshKey}`} className="animate-fade-in">
-        {view === 'dashboard' && <DashboardView onNavigate={navigate} />}{view === 'vehicles' && <VehiclesView />}{view === 'customers' && <CustomersView />}{view === 'ledgers' && <LedgersView />}{view === 'payments' && <PaymentsView />}{view === 'invoices' && <InvoicesView />}{view === 'reports' && <ReportsView />}{view === 'settings' && <SettingsView />}
+        {view === 'dashboard' && <DashboardView onNavigate={navigate} />}{view === 'vehicles' && <VehiclesView />}{view === 'vehicle-sheet' && <VehiclesSheetView />}{view === 'customers' && <CustomersView />}{view === 'ledgers' && <LedgersView />}{view === 'payments' && <PaymentsView />}{view === 'invoices' && <InvoicesView />}{view === 'reports' && <ReportsView />}{view === 'settings' && <SettingsView />}
       </div></main>
     </div>
   </div>;

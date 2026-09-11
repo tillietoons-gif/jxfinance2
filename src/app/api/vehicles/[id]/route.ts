@@ -24,6 +24,9 @@ export async function GET(
     });
     if (!vehicle)
       return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const companyLedger = vehicle.companyLedgerId
+      ? await db.ledger.findUnique({ where: { id: vehicle.companyLedgerId } })
+      : null;
     const totalCharge = vehicle.expenses.reduce(
       (s, e) => s + (e.customerCharge || 0),
       0
@@ -50,6 +53,7 @@ export async function GET(
       : [];
     return NextResponse.json({
       ...vehicle,
+      companyLedger,
       totalCharge,
       totalCost,
       profit,
