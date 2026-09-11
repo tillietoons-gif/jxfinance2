@@ -313,6 +313,25 @@ export function VehiclesSheetView() {
       toast.error("VIN, Make, Model, Customer, and Company are required");
       return;
     }
+    if (row.isNew) {
+      const normalizedVin = data.vin.trim().toUpperCase();
+      const existing = rowsRef.current.some(
+        (r) =>
+          !r.isNew &&
+          r.data.vin &&
+          r.data.vin.trim().toUpperCase() === normalizedVin &&
+          r.localId !== localId
+      );
+      if (existing) {
+        toast.error(`A vehicle with VIN ${normalizedVin} already exists`);
+        setRows((current) =>
+          current.map((item) =>
+            item.localId === localId ? { ...item, saving: false } : item
+          )
+        );
+        return;
+      }
+    }
     setRows((current) =>
       current.map((item) => (item.localId === localId ? { ...item, saving: true } : item))
     );
